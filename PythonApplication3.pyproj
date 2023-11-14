@@ -1,35 +1,33 @@
-<Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003" ToolsVersion="4.0">
-  <PropertyGroup>
-    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
-    <SchemaVersion>2.0</SchemaVersion>
-    <ProjectGuid>2e3ed63c-ec24-41c1-a4f0-a976a0eba299</ProjectGuid>
-    <ProjectHome>.</ProjectHome>
-    <StartupFile>PythonApplication3.py</StartupFile>
-    <SearchPath>
-    </SearchPath>
-    <WorkingDirectory>.</WorkingDirectory>
-    <OutputPath>.</OutputPath>
-    <Name>PythonApplication3</Name>
-    <RootNamespace>PythonApplication3</RootNamespace>
-  </PropertyGroup>
-  <PropertyGroup Condition=" '$(Configuration)' == 'Debug' ">
-    <DebugSymbols>true</DebugSymbols>
-    <EnableUnmanagedDebugging>false</EnableUnmanagedDebugging>
-  </PropertyGroup>
-  <PropertyGroup Condition=" '$(Configuration)' == 'Release' ">
-    <DebugSymbols>true</DebugSymbols>
-    <EnableUnmanagedDebugging>false</EnableUnmanagedDebugging>
-  </PropertyGroup>
-  <ItemGroup>
-    <Compile Include="PythonApplication3.py" />
-  </ItemGroup>
-  <Import Project="$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v$(VisualStudioVersion)\Python Tools\Microsoft.PythonTools.targets" />
-  <!-- Uncomment the CoreCompile target to enable the Build command in
-       Visual Studio and specify your pre- and post-build commands in
-       the BeforeBuild and AfterBuild targets below. -->
-  <!--<Target Name="CoreCompile" />-->
-  <Target Name="BeforeBuild">
-  </Target>
-  <Target Name="AfterBuild">
-  </Target>
-</Project>
+import pandas as pd
+movies=pd.read_csv("D:\VStudio\movie recommendation.csv")
+movies.head(10)
+movies.info()
+movies.isnull().sum()
+movies.columns
+movies=movies[['id', 'title', 'overview', 'genre']]
+movies['tags'] = movies['overview']+movies['genre']
+movies
+new_data  = movies.drop(columns=['overview', 'genre'])
+new_data
+from sklearn.feature_extraction.text import CountVectorizer
+cv=CountVectorizer(max_features=10000, stop_words='english')
+cv
+vector=cv.fit_transform(new_data['tags'].values.astype('U')).toarray()
+vector.shape
+from sklearn.metrics.pairwise import cosine_similarity
+similarity=cosine_similarity(vector)
+similarity
+new_data[new_data['title']=="Kung Fu Panda"].index[0]
+distance = sorted(list(enumerate(similarity[2])), reverse=True, key=lambda vector:vector[1])
+for i in distance[0:5]:
+    print(new_data.iloc[i[0]].title)
+def recommand(movies):
+    index=new_data[new_data['title']==movies].index[0]
+    distance = sorted(list(enumerate(similarity[index])), reverse=True, key=lambda vector:vector[1])
+    for i in distance[0:5]:
+        print(new_data.iloc[i[0]].title)
+recommand("Frozen")
+import pickle
+pickle.dump(new_data, open('movies_list.pkl', 'wb'))
+pickle.dump(similarity, open('similarity.pkl', 'wb'))
+#pickle.load(open('movies_list.pkl', 'rb'))
